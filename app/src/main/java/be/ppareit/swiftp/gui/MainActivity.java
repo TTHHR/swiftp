@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -44,8 +45,10 @@ import java.util.Arrays;
 
 import be.ppareit.swiftp.App;
 import be.ppareit.swiftp.BuildConfig;
+import be.ppareit.swiftp.FsService;
 import be.ppareit.swiftp.FsSettings;
 import be.ppareit.swiftp.R;
+import be.ppareit.swiftp.Util;
 
 /**
  * This is the main activity for swiftp, it enables the user to start the server service
@@ -54,6 +57,7 @@ import be.ppareit.swiftp.R;
 public class MainActivity extends AppCompatActivity {
 
     final static int PERMISSIONS_REQUEST_CODE = 12;
+    private static final String TAG = "MainActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -82,6 +86,26 @@ public class MainActivity extends AppCompatActivity {
         getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, new PreferenceFragment())
                 .commit();
+    }
+
+    @Override
+    protected void onStart() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            String action = intent.getStringExtra("action");
+            Log.w(TAG, " value " + action);
+                if (action != null) {
+                    if (action.equals("start")) {
+                        if (!Util.useScopedStorage() || FsSettings.getExternalStorageUri() != null) {
+                            FsService.start();
+                        }
+                    }
+                    else if (action.equals("stop")) {
+                        FsService.stop();
+                    }
+                }
+        }
+        super.onStart();
     }
 
     private boolean haveReadWritePermissions() {
